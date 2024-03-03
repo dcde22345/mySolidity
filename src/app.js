@@ -31,6 +31,7 @@ App = {
   loadAccount: async () => {
     // Set the current blockchain account
     const userAccount = await web3.eth.getAccounts();
+    console.log(userAccount);
     App.account = userAccount[0];
   },
 
@@ -91,6 +92,14 @@ App = {
     $newTaskTemplate.show();
   },
 
+  createTask: async () => {
+    App.setLoading(true);
+    const content = $("#newTask").val();
+    console.log(content);
+    await App.todoList.createTask(content, { from: App.account });
+    window.location.reload();
+  },
+
   setLoading: (bool) => {
     App.loading = bool;
     const loader = $("#loader");
@@ -102,6 +111,41 @@ App = {
       loader.hide();
       content.show();
     }
+  },
+
+  getBlock: async () => {
+    web3 = new Web3(window.ethereum);
+    web3.eth
+      .getBlockNumber()
+      .then((blockNumber) => {
+        console.log("最新區塊高度：", blockNumber);
+        App.getBlockByHeightWeb3(blockNumber);
+      })
+      .catch((error) => {
+        console.error("獲取區塊高度時發生錯誤：", error);
+      });
+  },
+
+  getBlockByHeightWeb3: (n) => {
+    const blockNumber = Number(n);
+    web3.eth
+      .getBlock(blockNumber)
+      .then((blockInfo) => {
+        if (blockInfo) {
+          console.log("區塊資訊：", blockInfo);
+          console.log("區塊號：", blockInfo.number);
+          console.log("交易數量：", blockInfo.transactions.length);
+          console.log("交易列表：");
+          blockInfo.transactions.forEach((txHash) => {
+            console.log(txHash);
+          });
+        } else {
+          alert(`找不到區塊號 ${blockNumber} 的資訊。`);
+        }
+      })
+      .catch((error) => {
+        alert("發生錯誤：" + error);
+      });
   },
 };
 
